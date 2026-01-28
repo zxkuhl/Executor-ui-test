@@ -5762,4 +5762,3 @@ wait(1.5)
 game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("LOADERLoadingScreen"):Destroy()
 
 return DELTA["1"], require;
-
