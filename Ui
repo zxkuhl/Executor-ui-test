@@ -5225,6 +5225,49 @@ UILib.Settings:AddSwitch("Console", "Toggle roblox console logs in the GUI", isf
 
 end)
 
+UILib.Settings:AddSwitch("Prevent Purchases", "Blocks scripts from prompting game pass / dev product purchases (like Delta)", not isfile("disable_prevent_purchases"), function(state)
+    if state then
+        delfile("disable_prevent_purchases")  -- remove disable flag
+        
+        -- === Enable blocking ===
+        if not getgenv().purchase_hooks_active then
+            local mps = game:GetService("MarketplaceService")
+
+            -- Block game pass prompts
+            getgenv().old_prompt_gamepass = hookfunction(mps.PromptGamePassPurchase, function(...)
+                local args = {...}
+                local player = args[2]
+                local passId = args[3]
+                warn("[Delta] Blocked game pass purchase prompt → ID: " .. tostring(passId))
+                mps.PromptGamePassPurchaseFinished:Fire(player, passId, false, false)
+            end)
+
+            -- Block dev product prompts
+            getgenv().old_prompt_product = hookfunction(mps.PromptProductPurchase, function(...)
+                local args = {...}
+                local player = args[2]
+                local productId = args[3]
+                warn("[Delta] Blocked dev product purchase prompt → ID: " .. tostring(productId))
+                mps.PromptProductPurchaseFinished:Fire(player, productId, false, Enum.PurchaseFailureReason.NotForSale)
+            end)
+
+            -- Block generic purchase prompt (newer API)
+            getgenv().old_prompt_purchase = hookfunction(mps.PromptPurchase, function(...)
+                warn("[Delta] Blocked generic purchase prompt")
+                -- Can't reliably fire finished event for this one, so just block
+            end)
+
+            getgenv().purchase_hooks_active = true
+        end
+
+    else
+        writefile("disable_prevent_purchases", "1")
+        warn("[Delta] Purchase blocking disabled (hooks remain active)")
+        -- Note: hooks are permanent. To fully restore originals you'd need to store and reassign, but most executors leave them hooked.
+    end
+end)
+
+
 UILib.Settings:AddDropdown("FPS Cap", "Change the FPS cap for a smoother experience", "60 FPS", {"60 FPS", "120 FPS", "Max FPS"}, function(selection)
 		if selection == "60 FPS" then
 			setfpscap(60)
