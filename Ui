@@ -3493,7 +3493,34 @@ DELTA["177"] = Instance.new("LocalScript", DELTA["173"]);
 
 -- StarterGui.Delta.Console.RobloxConsole.LocalScript
 DELTA["178"] = Instance.new("LocalScript", DELTA["163"]);
+DELTA["178"].Source = [[
+local console = script.Parent.Console.ScrollingFrame.Header
+local consoleElements = script.Parent.Parent.ConsoleElements
 
+local function addMessage(messageType, text)
+    local template = consoleElements:FindFirstChild(messageType)
+    if template then
+        local newMessage = template:Clone()
+        newMessage.Content.Text = text
+        newMessage.Visible = true
+        newMessage.Parent = console
+        console.Parent.CanvasPosition = Vector2.new(0, console.Parent.AbsoluteCanvasSize.Y)
+    end
+end
+
+local LogService = game:GetService("LogService")
+LogService.MessageOut:Connect(function(message, messageType)
+    if messageType == Enum.MessageType.MessageOutput then
+        addMessage("Output", "[Output] " .. message)
+    elseif messageType == Enum.MessageType.MessageInfo then
+        addMessage("Info", "[Info] " .. message)
+    elseif messageType == Enum.MessageType.MessageWarning then
+        addMessage("Warn", "[Warn] " .. message)
+    elseif messageType == Enum.MessageType.MessageError then
+        addMessage("Error", "[Error] " .. message)
+    end
+end)
+]]
 
 -- StarterGui.Delta.Console.Marker
 DELTA["179"] = Instance.new("StringValue", DELTA["162"]);
