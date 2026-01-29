@@ -3,6 +3,23 @@
 	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
 ]]
 
+getgenv().isfile = function() return false end
+getgenv().makefolder = function() end
+getgenv().delfile = function() end
+getgenv().listfiles = function() return {} end
+
+getgenv().writefile = function(name, data) 
+    getgenv()[name] = data 
+end
+
+getgenv().readfile = function(name)
+    if getgenv()[name] then return getgenv()[name] end
+    if name == "iconsize" then return "Medium" end
+    if name == "iconshape" then return "Squircle" end
+    if name == "iconcolor" then return "Blue" end
+    return ""
+end
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/VegieIsCute/stuff/main/updateChecker.lua"))();
 
 --[[
