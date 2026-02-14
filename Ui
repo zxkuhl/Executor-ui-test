@@ -1,4 +1,4 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/zxkuhl/Executor-ui-test/refs/heads/main/Notify%20destroy"))()
+
 
 --[[
 	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
