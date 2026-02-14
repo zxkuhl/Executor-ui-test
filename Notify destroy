@@ -1,0 +1,86 @@
+-- Roblox Exploit: Nuke Notifications + Auto-Click "Don’t Show again" for 5 Seconds
+-- Blocks new notifications forever + aggressive wipe + special button handling for first 5s
+
+local RunService = game:GetService("RunService")
+local StarterGui  = game:GetService("StarterGui")
+local CoreGui     = game:GetService("CoreGui")
+
+-- 1. Permanent lightweight hook: Block ALL SendNotification calls
+local mt = getrawmetatable(game)
+local old_namecall = mt.__namecall
+
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    if self == StarterGui and method == "SetCore" and (...) == "SendNotification" then
+        return  -- silently block
+    end
+    return old_namecall(self, ...)
+end)
+setreadonly(mt, true)
+
+-- 2. Function to nuke notifications + check for special "Don’t Show again" button
+local function ultraNuke()
+    -- Destroy main containers
+    local robloxGui = CoreGui:FindFirstChild("RobloxGui")
+    if robloxGui then
+        for _, child in ipairs(robloxGui:GetChildren()) do
+            if child.Name:find("Notification") or child.Name:lower():find("notif") then
+                pcall(child.Destroy, child)
+            end
+        end
+    end
+
+    -- Scan all CoreGui children for ScreenGuis / Frames with the special button
+    for _, top in ipairs(CoreGui:GetChildren()) do
+        if top:IsA("ScreenGui") or top:IsA("Frame") then
+            for _, obj in ipairs(top:GetDescendants()) do
+                if obj:IsA("TextButton") or obj:IsA("TextLabel") then
+                    if obj.Text == "Don’t Show again" then  -- exact match, curly apostrophe
+                        -- Simulate click on the button (fires Activated if it's a button)
+                        if obj:IsA("TextButton") and obj.Activated then
+                            task.spawn(function()
+                                obj.Activated:Fire()  -- trigger "don't show again" logic
+                            end)
+                        end
+                        -- Immediately destroy the whole notification (parent chain)
+                        local target = obj.Parent
+                        while target and not target:IsA("ScreenGui") and target ~= CoreGui do
+                            target = target.Parent
+                        end
+                        if target and target ~= CoreGui then
+                            pcall(target.Destroy, target)
+                        else
+                            pcall(obj.Parent.Parent.Destroy, obj.Parent.Parent)  -- fallback
+                        end
+                        return  -- early exit after handling one
+                    end
+                end
+            end
+        end
+    end
+
+    -- Extra wipe for stray frames
+    for _, obj in ipairs(CoreGui:GetDescendants()) do
+        if obj:IsA("Frame") and obj.Name:lower():find("notif") and obj.Visible then
+            pcall(obj.Destroy, obj)
+        end
+    end
+end
+
+-- 3. Run ultra aggressive mode ONLY for the first 5 seconds
+local startTime = tick()
+local connection
+
+connection = RunService.Heartbeat:Connect(function()
+    if tick() - startTime >= 5 then
+        connection:Disconnect()
+        connection = nil
+        return
+    end
+    
+    ultraNuke()  -- every frame during the 5s window
+end)
+
+-- Initial wipe immediately
+ultraNuke()
