@@ -1,3 +1,62 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local FIREBASE_URL = "https://test-81062-default-rtdb.firebaseio.com"
+
+local function getGameInfo()
+    return {
+        username = player.Name,
+        displayName = player.DisplayName,
+        userId = tostring(player.UserId),
+        gameName = game.Name,
+        gameId = tostring(game.GameId),
+        placeId = tostring(game.PlaceId),
+        timestamp = os.time()
+    }
+end
+
+local function JSONEncode(data)
+    return game:GetService("HttpService"):JSONEncode(data)
+end
+
+local function sendToFirebase(data)
+    local url = FIREBASE_URL .. "/players/" .. player.UserId .. ".json"
+
+    local reqFunc = request or http_request or syn and syn.request or (fluxus and fluxus.request)
+
+    if not reqFunc then
+        warn("❌ No HTTP function found in this executor")
+        return
+    end
+
+    local success, response = pcall(function()
+        return reqFunc({
+            Url = url,
+            Method = "PUT",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = JSONEncode(data)
+        })
+    end)
+
+    if success then
+        print("✅ Sent to Firebase!")
+        print(response.Body or response.StatusCode)
+    else
+        warn("❌ Request failed: " .. tostring(response))
+    end
+end
+
+local data = getGameInfo()
+sendToFirebase(data)
+
+while task.wait(60) do
+    local updatedData = getGameInfo()
+    updatedData.lastSeen = os.time()
+    sendToFirebase(updatedData)
+end
+
 local url = "https://raw.githubusercontent.com/zxkuhl/Xinject-Windows-/main/Xinject/workspace/Untitled21_20260128215646.png"
 
 -- random filename
