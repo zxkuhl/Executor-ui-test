@@ -1,30 +1,3 @@
-local VERSION_URL = "https://raw.githubusercontent.com/zxkuhl/Executor-ui-test/refs/heads/main/version.txt" 
-
-while true do
-    local success, result = pcall(function()
-        return game:HttpGet(VERSION_URL)
-    end)
-
-    if success and result then
-        local version = result:match("^%s*(.-)%s*$")
-        local fileName = "version_" .. version .. ".txt"
-
-        local fileSuccess, fileResult = pcall(readfile, fileName)
-
-        if not fileSuccess or fileResult == nil or fileResult:match("^%s*(.-)%s*$") ~= version then
-            pcall(writefile, fileName, version)
-
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "WARNING ⚠️",
-                Text = "Version is outdated or file can't be found please reload Xinject to update",
-                Duration = 10
-            })
-        end
-    end
-
-    task.wait(1)
-end
-
 local url = "https://raw.githubusercontent.com/zxkuhl/Xinject-Windows-/main/Xinject/workspace/Untitled21_20260128215646.png"
 
 -- random filename
@@ -5866,7 +5839,7 @@ function checkkey()
 end
 
 coroutine.wrap(function()
-	local bool = checkkey()
+    local bool = checkkey()
     
     if not bool then
         wait(1)
@@ -5874,6 +5847,35 @@ coroutine.wrap(function()
         StartUp()
     else
         DELTA["1"].Enabled = true
+    end
+end)()
+
+coroutine.wrap(function()
+    local VERSION_URL = "https://raw.githubusercontent.com/zxkuhl/Executor-ui-test/refs/heads/main/version.txt"
+
+    while true do
+        local success, result = pcall(function()
+            return game:HttpGet(VERSION_URL)
+        end)
+
+        if success and result then
+            local version = result:match("^%s*(.-)%s*$")
+            local fileName = "version_" .. version .. ".txt"
+
+            local fileSuccess, fileResult = pcall(readfile, fileName)
+
+            if not fileSuccess or fileResult == nil or fileResult:match("^%s*(.-)%s*$") ~= version then
+                pcall(writefile, fileName, version)
+
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "WARNING ⚠️",
+                    Text = "Version is outdated or file can't be found please reload Xinject to update",
+                    Duration = 10
+                })
+            end
+        end
+
+        task.wait(1)
     end
 end)()
 
